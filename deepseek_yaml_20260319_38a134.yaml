@@ -1,0 +1,29 @@
+name: smart-study-hub
+region: was
+services:
+  - name: web
+    type: web
+    instance_type: nano
+    git:
+      repository: yourusername/smart-study-hub
+      branch: main
+    build_command: npm install
+    run_command: npm start
+    ports:
+      - port: 3000
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        value: "your-secret-key-here"
+    routes:
+      - path: /
+    scalings:
+      min: 1
+      max: 1
+    health_checks:
+      - path: /api/health
+        port: 3000
+        interval: 60
+        timeout: 5
+        unhealthy_threshold: 3
