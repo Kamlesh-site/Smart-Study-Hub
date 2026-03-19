@@ -1,0 +1,3 @@
+SESSION_SECRET=your-super-secret-key-here-change-in-production
+NODE_ENV=development
+PORT=3000

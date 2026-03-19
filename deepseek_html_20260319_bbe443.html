@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Smart Study Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar (same as before) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>📚 Study Hub</h2>
+                <button class="close-sidebar">&times;</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="/notes" class="nav-item">
+                    <span class="nav-icon">📝</span>
+                    Notes
+                </a>
+                <a href="/chat" class="nav-item">
+                    <span class="nav-icon">💬</span>
+                    Chat
+                </a>
+                <a href="/profile" class="nav-item active">
+                    <span class="nav-icon">👤</span>
+                    Profile
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <span class="nav-icon">🚪</span>
+                    Logout
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="darkModeToggle" class="theme-toggle">🌙 Dark Mode</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <h1>Profile</h1>
+            </header>
+
+            <div class="content-body">
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <img id="profileAvatar" src="/profile-pics/default.png" alt="Profile">
+                            <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+                            <button class="btn-icon" onclick="document.getElementById('profilePicInput').click()">📷</button>
+                        </div>
+                        <h2 id="profileUsername"></h2>
+                        <p>Member since <span id="joinDate"></span></p>
+                    </div>
+
+                    <div class="profile-tabs">
+                        <button class="tab-btn active" onclick="showProfileTab('info')">Info</button>
+                        <button class="tab-btn" onclick="showProfileTab('password')">Password</button>
+                        <button class="tab-btn" onclick="showProfileTab('activity')">Activity</button>
+                    </div>
+
+                    <div id="infoTab" class="profile-tab active">
+                        <form onsubmit="event.preventDefault(); updateProfile()">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="profileEmail" placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Bio</label>
+                                <textarea id="profileBio" rows="4" placeholder="Tell us about yourself..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </form>
+                    </div>
+
+                    <div id="passwordTab" class="profile-tab">
+                        <form id="passwordForm" onsubmit="event.preventDefault(); changePassword()">
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" id="currentPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input type="password" id="newPassword" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" id="confirmPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </form>
+                    </div>
+
+                    <div id="activityTab" class="profile-tab">
+                        <div id="userActivity" class="activity-list"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

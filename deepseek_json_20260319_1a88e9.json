@@ -1,0 +1,18 @@
+{
+  "name": "smart-study-hub-class9",
+  "version": "1.0.0",
+  "description": "Complete collaborative study platform for Class 9 students",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^8.4.0",
+    "bcrypt": "^5.1.1",
+    "express-session": "^1.17.3",
+    "socket.io": "^4.6.1",
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5"
+  }
+}

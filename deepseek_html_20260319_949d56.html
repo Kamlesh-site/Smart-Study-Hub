@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes - Smart Study Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>📚 Study Hub</h2>
+                <button class="close-sidebar">&times;</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="/notes" class="nav-item active">
+                    <span class="nav-icon">📝</span>
+                    Notes
+                </a>
+                <a href="/chat" class="nav-item">
+                    <span class="nav-icon">💬</span>
+                    Chat
+                    <span class="badge" id="unreadBadge" style="display: none;"></span>
+                </a>
+                <a href="/profile" class="nav-item">
+                    <span class="nav-icon">👤</span>
+                    Profile
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <span class="nav-icon">🚪</span>
+                    Logout
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="darkModeToggle" class="theme-toggle">🌙 Dark Mode</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <h1>Notes</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search notes...">
+                    </div>
+                    <button class="btn btn-primary" id="uploadNotesBtn" onclick="showUploadModal()">
+                        <span class="btn-icon">📤</span> Upload Notes
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Tabs for different note views -->
+                <div class="notes-tabs">
+                    <button class="tab-btn active" onclick="switchNotesTab('collaborative')">Collaborative Notes</button>
+                    <button class="tab-btn" onclick="switchNotesTab('uploaded')">Uploaded Notes</button>
+                    <button class="tab-btn" onclick="switchNotesTab('favorites')">Favorites</button>
+                </div>
+
+                <!-- Collaborative Notes View -->
+                <div id="collaborativeView" class="notes-view active">
+                    <div class="notes-layout">
+                        <!-- Subject Sidebar -->
+                        <div class="subject-sidebar">
+                            <h3>Subjects</h3>
+                            <div id="subjectsList" class="subjects-list">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+
+                        <!-- Chapter List -->
+                        <div class="chapter-sidebar" id="chapterSidebar" style="display: none;">
+                            <h3 id="currentSubjectTitle"></h3>
+                            <div id="chaptersList" class="chapters-list"></div>
+                        </div>
+
+                        <!-- Notes Editor -->
+                        <div class="notes-editor" id="notesEditor" style="display: none;">
+                            <div class="editor-header">
+                                <h3 id="chapterTitle"></h3>
+                                <div class="editor-actions">
+                                    <span class="save-status" id="saveStatus"></span>
+                                    <button class="btn btn-secondary" onclick="saveNotes()">Save</button>
+                                </div>
+                            </div>
+                            <textarea id="notesContent" class="notes-textarea" placeholder="Write your notes here..."></textarea>
+                            
+                            <!-- Viewers counter -->
+                            <div class="viewers-indicator" id="viewersIndicator" style="display: none;">
+                                👥 <span id="viewerCount">0</span> others viewing
+                            </div>
+                        </div>
+
+                        <!-- Mobile Back Button -->
+                        <div class="mobile-back" id="mobileBack" style="display: none;">
+                            <button onclick="goBack()" class="btn btn-secondary">← Back</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uploaded Notes View -->
+                <div id="uploadedView" class="notes-view">
+                    <!-- Filters -->
+                    <div class="filters-bar">
+                        <select id="filterSubject" class="filter-select" onchange="filterUploadedNotes()">
+                            <option value="">All Subjects</option>
+                        </select>
+                        <input type="text" id="filterChapter" class="filter-input" placeholder="Chapter name" oninput="debounceFilter()">
+                        <input type="date" id="filterDate" class="filter-input" onchange="filterUploadedNotes()">
+                        <input type="text" id="filterTag" class="filter-input" placeholder="#tag" oninput="debounceFilter()">
+                        <select id="sortBy" class="filter-select" onchange="filterUploadedNotes()">
+                            <option value="uploaded_at">Newest first</option>
+                            <option value="date_of_notes">Date of notes</option>
+                            <option value="download_count">Most downloaded</option>
+                            <option value="file_name">File name</option>
+                        </select>
+                    </div>
+
+                    <!-- Files Grid -->
+                    <div id="uploadedNotesGrid" class="files-grid">
+                        <div class="loading-spinner"></div>
+                    </div>
+
+                    <!-- Floating Action Button for mobile -->
+                    <button class="fab" onclick="showUploadModal()">+</button>
+                </div>
+
+                <!-- Favorites View -->
+                <div id="favoritesView" class="notes-view">
+                    <div id="favoritesGrid" class="files-grid">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Notes</h2>
+                <button class="close-modal" onclick="hideUploadModal()">&times;</button>
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <!-- Drag and drop area -->
+                <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                    <div class="dropzone-content">
+                        <span class="dropzone-icon">📤</span>
+                        <p>Drag and drop files here or click to browse</p>
+                        <p class="dropzone-hint">Supports PDF, JPG, PNG (Max 50MB)</p>
+                    </div>
+                    <input type="file" id="fileInput" name="files" multiple accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                </div>
+
+                <!-- File preview area -->
+                <div id="filePreview" class="file-preview-area"></div>
+
+                <!-- Form fields -->
+                <div class="form-group">
+                    <label>Subject *</label>
+                    <select name="subjectId" id="uploadSubject" required>
+                        <option value="">Select Subject</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Chapter Name *</label>
+                    <input type="text" name="chapterName" id="uploadChapter" placeholder="e.g., Chapter 1: Number Systems" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Optional Subject (if applicable)</label>
+                    <select name="optionalSubjectId" id="uploadOptionalSubject">
+                        <option value="">None</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Notes</label>
+                    <input type="date" name="dateOfNotes" id="uploadDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" name="tags" id="uploadTags" placeholder="#important #revision #exam">
+                </div>
+
+                <div class="form-group">
+                    <label>Description (optional)</label>
+                    <textarea name="description" id="uploadDescription" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="hideUploadModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">Upload Files</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imagePreviewModal" class="modal">
+        <div class="modal-content image-preview-content">
+            <div class="modal-header">
+                <h2 id="previewTitle"></h2>
+                <button class="close-modal" onclick="hideImagePreview()">&times;</button>
+            </div>
+            <div class="image-preview-container">
+                <img id="previewImage" src="" alt="Preview">
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="downloadPreviewBtn" class="btn btn-primary" download>Download</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
